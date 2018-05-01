@@ -15,7 +15,7 @@ In Finder, select a PDF file (or multiple PDF files) and select "Recognize Text"
 </p>
 
 Optionally, before pressing "Begin," press "Options" to use additional features supported by OCRmyPDF.
-s
+
 <p align="center">
     <img width="400" src="options.png" alt="Options list" />
 </p>
