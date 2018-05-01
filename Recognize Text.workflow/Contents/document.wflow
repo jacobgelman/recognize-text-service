@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AMApplicationBuild</key>
+	<string>444.7</string>
+	<key>AMApplicationVersion</key>
+	<string>2.8</string>
+	<key>AMDocumentVersion</key>
+	<string>2</string>
+	<key>actions</key>
+	<array>
+		<dict>
+			<key>action</key>
+			<dict>
+				<key>AMAccepts</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Optional</key>
+					<true/>
+					<key>Types</key>
+					<array>
+						<string>com.apple.applescript.object</string>
+					</array>
+				</dict>
+				<key>AMActionVersion</key>
+				<string>1.0</string>
+				<key>AMApplication</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>AMParameterProperties</key>
+				<dict>
+					<key>source</key>
+					<dict/>
+				</dict>
+				<key>AMProvides</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Types</key>
+					<array>
+						<string>com.apple.applescript.object</string>
+					</array>
+				</dict>
+				<key>ActionBundlePath</key>
+				<string>/System/Library/Automator/Run JavaScript.action</string>
+				<key>ActionName</key>
+				<string>Run JavaScript</string>
+				<key>ActionParameters</key>
+				<dict>
+					<key>source</key>
+					<string>var app = Application.currentApplication()app.includeStandardAdditions = true
+function exec(script) {	var script = `		#!/bin/bash		PATH=$PATH:/usr/local/bin		${script}	`	return app.doShellScript(script);}
+
+function execForStatus(script) {
+	return exec(`{${script} &gt;&amp;-}; echo $?`)
+}
+
+function open(url) {
+	return exec(`open ${url}`)
+}
+
+function isInstalled() {
+	return execForStatus("command -v ocrmypdf; echo $?") == 1
+}function ocrmypdf(input, output, additionalArgs) {	var script = `
+		export LANG=en_US.utf-8;		export LC_ALL=en_US.utf-8;
+		ocrmypdf "${input}" "${output}" ${additionalArgs}
+	`	return exec(script)}
+
+String.prototype.insert = function(string, index) {
+  return this.substr(0, index) + string + this.substr(index)
+}function run(input, parameters) {
+
+	if (!isInstalled()) {
+
+		var res = app.displayAlert("OCRmyPDF Is Not Installed", {
+			message: "Please install OCRmyPDF and try again.",
+			buttons: ["Quit", "Instructions"]
+		}).buttonReturned
+
+		if (res == "Instructions") {
+			open("https://github.com/jbarlow83/OCRmyPDF#installation")
+		}
+
+		return
+	}
+
+	var finder = Application("Finder")
+	var pdfs = finder.selection().map((pdf) =&gt; {
+		return decodeURI(pdf.url().replace("file://", ""))
+	})
+
+	var count = pdfs.length
+	var countString = `${count} ${count &gt; 1 ? "PDFs" : "PDF"}`
+
+	var res = app.displayAlert(`Would You Like To Begin Text Recognition On ${countString}?`, {
+		message: "This may take several minutes.",
+		buttons: ["Cancel", "Options", "Begin"]
+	})
+
+	var args = [];
+	var suffix = " A";
+
+	switch (res.buttonReturned) {
+
+		case "Cancel":
+			return
+			break
+
+		case "Options":
+
+			const presets = {
+				"Rotate Pages": "-r",
+				"Clean Pages": "-i",
+				"Change New File Suffix": undefined,
+				"Remove Background": "--remove-background",
+				"Skip Pages With Text": "-s",
+				"Force Text Recognition": "-f",
+				"Clean For Text Recognition": "-c",
+				"Deskew For Text Recognition": "-d",
+				"Pass Additional Arguments": undefined
+			}
+
+			var selected = app.chooseFromList(Object.keys(presets), {
+				withPrompt: "Select Additonal Options",
+				multipleSelectionsAllowed: true
+			})
+
+			if (selected.includes("Change New File Suffix")) {
+
+				var p = app.displayDialog("Enter A Suffix To Append To New Files", {
+					defaultAnswer: suffix,
+				})
+
+				var newSuffix = p.textReturned.trim()
+				if (newSuffix != "") {
+					suffix = newSuffix
+				}
+
+			}
+
+			if (selected.includes("Pass Additional Arguments")) {
+
+				var p = app.displayDialog("Enter Additonal Arguments To Pass To OCRmyPDF", {
+					defaultAnswer: "--pdfa-image-compression lossless"
+				})
+
+				if (p.buttonReturned == "Cancel") {
+					return
+				}
+
+				args.push(p.textReturned)
+			}
+
+			for (let s of selected) {
+				var flag = presets[s]
+				if (flag != undefined) {
+					args.push(flag)
+				}
+			}
+
+			break
+
+		default:
+			break
+
+	}
+
+	var argString = args.join(" ")
+
+	for (let pdf of pdfs) {
+		var outputTitle = pdf.insert(suffix, pdf.indexOf(".pdf"))
+		ocrmypdf(pdf, outputTitle, argString)
+	}
+
+	app.displayNotification(`New files are marked with the "${suffix.trim()}" suffix`, {
+		withTitle: `${countString} Successfully Processed`
+	})	}</string>
+				</dict>
+				<key>BundleIdentifier</key>
+				<string>com.apple.Automator.RunJavaScript</string>
+				<key>CFBundleVersion</key>
+				<string>1.0</string>
+				<key>CanShowSelectedItemsWhenRun</key>
+				<false/>
+				<key>CanShowWhenRun</key>
+				<true/>
+				<key>Category</key>
+				<array>
+					<string>AMCategoryUtilities</string>
+				</array>
+				<key>Class Name</key>
+				<string>RunJavaScriptAction</string>
+				<key>InputUUID</key>
+				<string>F1C405E8-A4B5-4E69-B752-FF7A15DF5C2C</string>
+				<key>Keywords</key>
+				<array>
+					<string>Run</string>
+					<string>JavaScript</string>
+				</array>
+				<key>OutputUUID</key>
+				<string>ABE6DB0A-CBC4-43D9-9996-7A3AA895A9D1</string>
+				<key>UUID</key>
+				<string>52B5EF02-D45C-4585-828D-30AE16A13C03</string>
+				<key>UnlocalizedApplications</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>arguments</key>
+				<dict>
+					<key>0</key>
+					<dict>
+						<key>default value</key>
+						<string>function run(input, parameters) {
+
+	// Your script goes here
+
+	return input;
+}</string>
+						<key>name</key>
+						<string>source</string>
+						<key>required</key>
+						<string>0</string>
+						<key>type</key>
+						<string>0</string>
+						<key>uuid</key>
+						<string>0</string>
+					</dict>
+				</dict>
+				<key>isViewVisible</key>
+				<true/>
+				<key>location</key>
+				<string>619.500000:622.000000</string>
+				<key>nibPath</key>
+				<string>/System/Library/Automator/Run JavaScript.action/Contents/Resources/Base.lproj/main.nib</string>
+			</dict>
+			<key>isViewVisible</key>
+			<true/>
+		</dict>
+	</array>
+	<key>connectors</key>
+	<dict/>
+	<key>workflowMetaData</key>
+	<dict>
+		<key>serviceApplicationBundleID</key>
+		<string>com.apple.finder</string>
+		<key>serviceApplicationPath</key>
+		<string>/System/Library/CoreServices/Finder.app</string>
+		<key>serviceInputTypeIdentifier</key>
+		<string>com.apple.Automator.fileSystemObject.PDF</string>
+		<key>serviceOutputTypeIdentifier</key>
+		<string>com.apple.Automator.nothing</string>
+		<key>serviceProcessesInput</key>
+		<integer>0</integer>
+		<key>workflowTypeIdentifier</key>
+		<string>com.apple.Automator.servicesMenu</string>
+	</dict>
+</dict>
+</plist>
