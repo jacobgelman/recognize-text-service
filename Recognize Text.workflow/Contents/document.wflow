@@ -124,7 +124,7 @@ String.prototype.insert = function(string, index) {
 			}
 
 			var selected = app.chooseFromList(Object.keys(presets), {
-				withPrompt: "Select Additonal Options",
+				withPrompt: "Select Additional Options",
 				multipleSelectionsAllowed: true
 			})
 
