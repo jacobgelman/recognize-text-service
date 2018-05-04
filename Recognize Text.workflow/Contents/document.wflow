@@ -143,7 +143,7 @@ String.prototype.insert = function(string, index) {
 
 			if (selected.includes("Pass Additional Arguments")) {
 
-				var p = app.displayDialog("Enter Additonal Arguments To Pass To OCRmyPDF", {
+				var p = app.displayDialog("Enter Additional Arguments To Pass To OCRmyPDF", {
 					defaultAnswer: "--pdfa-image-compression lossless"
 				})
 
